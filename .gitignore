@@ -1,0 +1,14 @@
+# Ignore Visual Studio temporary files, directories, and files
+.vs/
+*.vsix
+*.vsidx
+.vscode/
+.idea/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.db
+*.cache
+*.log
