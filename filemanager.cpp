@@ -9,23 +9,12 @@ filemanager::~filemanager() {
     delete file;
 }
 
-QFile* filemanager::getFile()
-{
-    return file;
+bool createNewCSVFile(QString& fileName) {
+    return true;
 }
 
-void filemanager::setFile(QFile* newFile)
-{
-    qDebug() << "--> filemanager::setFile";
-
-    qDebug() << "    Setting new file object.";
-    this->file = newFile;
-    if (file) {
-        filePath = file->fileName();
-        qDebug() << "    New filepath: " << filePath;
-    }
-
-    qDebug() << "<-- filemanager::setFile";
+bool saveDataToCSV(QStringList& data) {
+    return true;
 }
 
 QStringList filemanager::parseCurrentFile()
@@ -69,7 +58,7 @@ QList<QStringList> filemanager::parseCurrentFileIntoColumns()
 
         // Split each line into cells using comma as delimiter
         QStringList cells = line.split(",");
-        qDebug() << "   " << cells;
+        qDebug() << "    Line cells:" << cells;
 
         // Initialize columns based on the number of cells in the first row
         if (isFirstLine) {
@@ -85,7 +74,8 @@ QList<QStringList> filemanager::parseCurrentFileIntoColumns()
         }
     }
 
-    qDebug() << "    File data parsed.";
+    qDebug() << "    Columns:" << columns;
+    qDebug() << "     File data parsed into columns.";
     qDebug() << "<-- filemanager::parseCurrentFileIntoColumns";
     return columns;
 }
@@ -132,4 +122,23 @@ QList<Player> filemanager::parseCurrentFileIntoPlayers() {
 
     qDebug() << "<-- filemanager::parseCurrentFileIntoPlayers";
     return players;
+}
+
+QFile* filemanager::getFile()
+{
+    return file;
+}
+
+void filemanager::setFile(QFile* newFile)
+{
+    qDebug() << "--> filemanager::setFile";
+
+    qDebug() << "    Setting new file object.";
+    this->file = newFile;
+    if (file) {
+        filePath = file->fileName();
+        qDebug() << "    New filepath: " << filePath;
+    }
+
+    qDebug() << "<-- filemanager::setFile";
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>662</width>
-    <height>458</height>
+    <height>485</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -254,14 +254,21 @@
        <x>80</x>
        <y>360</y>
        <width>152</width>
-       <height>41</height>
+       <height>71</height>
       </rect>
      </property>
-     <layout class="QVBoxLayout" name="buttonLayout" stretch="0">
+     <layout class="QVBoxLayout" name="buttonLayout" stretch="0,0">
       <item>
        <widget class="QPushButton" name="assignRolesButton">
         <property name="text">
          <string>Assign Roles</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="copyOutputToClipboardButton">
+        <property name="text">
+         <string>Copy to Clipboard</string>
         </property>
        </widget>
       </item>

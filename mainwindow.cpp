@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "filemanager.h"
 
 filemanager* g_fileManager = new filemanager();
 QList<Player> g_playersList;
@@ -40,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_newfile, &QAction::triggered, this, &MainWindow::createNewCSVFile);
     connect(ui->action_openfile, &QAction::triggered, this, &MainWindow::openCSVFile);
     connect(ui->assignRolesButton, &QPushButton::clicked, this, &MainWindow::assignRoles);
+    connect(ui->action_about, &QAction::triggered, this, &MainWindow::showAboutDialog);
 
     //connect(ui->action_savefile, &QAction::triggered, this, &MainWindow::openCSVFile);
 
@@ -52,6 +52,25 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::showAboutDialog() {
+    qDebug() << "--> MainWindow::showAboutDialog";
+
+    QMessageBox aboutBox;
+    aboutBox.setWindowTitle("About This Application");
+    aboutBox.setTextFormat(Qt::RichText);
+    aboutBox.setText(
+        "Marvel Rivals Role Assigner<br><br>"
+        "Developed by Tyler Larson<br>"
+        "<a href=\"https://github.com/Tyler127/MarvelRivalsRoleAssigner\">Marvel Rivals Role Assigner Github Repo</a><br>"
+        "Version: 1.0.0<br>"
+        "© 2025"
+        );
+
+    aboutBox.setStandardButtons(QMessageBox::Ok);
+    aboutBox.exec();
+
+    qDebug() << "<-- MainWindow::showAboutDialog";
+}
 
 void MainWindow::createNewCSVFile()
 {
@@ -74,9 +93,9 @@ void MainWindow::createNewCSVFile()
         }
     }
 
-    // Create and open the file for writing
+    // Create and open the file for reading and writing
     QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
         QMessageBox::critical(this, "Error", "Unable to create the file.");
         return;
     }
@@ -150,6 +169,9 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
 {
     qDebug() << "--> MainWindow::setupUIFromCSV";
 
+    // Exit the function if no file data was parsed
+    if (!fileData.size()) { return; }
+
     QStringList playerNames = fileData[0];
     playerNames.removeFirst(); // Remove the column header from the list
 
@@ -208,7 +230,7 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
 void MainWindow::assignRoles() {
     qDebug() << "--> MainWindow::assignRoles";
 
-    // Create a list of the selected strings of player names
+    // Create a list of the selected strings of player names from the comboboxes
     QSet<QString> selectedStringsSet;
     selectedStringsSet.insert(ui->playerBox_1->currentText().trimmed());
     selectedStringsSet.insert(ui->playerBox_2->currentText().trimmed());
@@ -220,7 +242,7 @@ void MainWindow::assignRoles() {
 
     // Create a list of the selected players by finding them based on name
     QList<Player*> selectedPlayersList;
-    for (Player player : g_playersList) {
+    for (Player& player : g_playersList) {
         if (selectedStringsSet.contains(player.getName())) {
             selectedPlayersList.append(&player);
             qDebug() << "   " << player.getName() << " was selected in the UI";
@@ -229,7 +251,7 @@ void MainWindow::assignRoles() {
             selectedStringsSet.remove(player.getName());
         }
     }
-    qDebug() << "    Selected names remaining: " << selectedStringsSet;
+    qDebug() << "    Selected names that aren't player objects: " << selectedStringsSet;
 
     // Remove any blank strings and add new player for never before seen names
     for (QString string : selectedStringsSet) {
@@ -241,16 +263,153 @@ void MainWindow::assignRoles() {
         }
     }
 
-    // Begin sussy algorithm here
+    // Setup the amount of each role to be selected
+    // TODO: allow for configuration of role counts in the UI
+    int vanguardCount = 2;
+    int duelistCount = 2;
+    int strategistCount = 2;
 
+    // Setup random number generation
+    std::random_device randomDevice; // Creates seed for the generator using hardware entropy
+    std::mt19937 randomGenerator(randomDevice()); // A random number generator
+    std::uniform_int_distribution<> intDist(0, 2); // 0=vanguard, 1=duelist, 2=strategist
+
+    // Shuffle list of selected players for more randomness
+    std::shuffle(selectedPlayersList.begin(), selectedPlayersList.end(), randomGenerator);
+    qDebug() << "    Shuffled players list:";
+    for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
+
+    // Track the amount of times each role has been assigned
+    int vanguardAssignments = 0;
+    int duelistAssignments = 0;
+    int strategistAssignments = 0;
+
+    // Calculate the amount of players that need to be handpicked and randomized
+    int numPlayersToHandpick = std::floor(static_cast<double>(selectedPlayersList.size()) / 2);
+    int numPlayersToRandomize = std::ceil(static_cast<double>(selectedPlayersList.size()) / 2);
+    qDebug() << "    selectedPlayerList.size(): " << selectedPlayersList.size();
+    qDebug() << "    Num players to handpick: " << numPlayersToHandpick;
+    qDebug() << "    Num players to randomize: " << numPlayersToRandomize;
+
+    // Assign the first half of players to their least played role
+    for (int i=0; i < numPlayersToHandpick; i++) {
+        Player* currentPlayer = selectedPlayersList[i];
+        qDebug() << "     Assigning handpick: " << currentPlayer->getName();
+
+        // Find which role/s the player has been selected for the least
+        int minCount = std::min({currentPlayer->getVanguardCount(), currentPlayer->getDuelistCount(), currentPlayer->getStrategistCount()});
+
+        // Add to a list all roles that have the least amount of occurances to account for the case of a tie
+        std::vector<int> possibleRoles;
+        if (currentPlayer->getVanguardCount() == minCount) {
+            possibleRoles.push_back(0);
+        }
+        if (currentPlayer->getDuelistCount() == minCount) {
+            possibleRoles.push_back(1);
+        }
+        if (currentPlayer->getStrategistCount() == minCount) {
+            possibleRoles.push_back(2);
+        }
+
+        // Loop until a valid role selection is made. Or defaults to whatever works if a limit of attempts is performed.
+        // TODO: fix bug that occurs when two players get assigned to the same role and then that role is the only mincount role for the third player
+        //         this bug then would loop endlessly. currently have the attemptsMade code in below as a hotfix but it results in 3 players with the
+        //         same role as it just uses whichever role that player was assigned on the previous execution of this function.
+        //         example: sam and yohann both are duelists from this below loop. jacob then has played duelist the least and is the third player to be
+        //                  selected for. therefore cannot force jacob into duelist role and results in him being what he was last game with the hotfix.
+        bool roleSelectionValid = false;
+        int randomNum;
+        int attemptsMade = 0;
+        while (!roleSelectionValid && attemptsMade < 100) {
+            std::uniform_int_distribution<> intDist(0, possibleRoles.size() - 1);
+            randomNum = possibleRoles[intDist(randomGenerator)];
+            attemptsMade++;
+            qDebug() << "       Selected Role: " << randomNum;
+
+            // The role selection is valid if the previous amount of assignments to
+            // a role plus one is less than or equal to the maximum for that role
+            if ((randomNum == 0 && vanguardAssignments + 1 <= vanguardCount) ||
+                (randomNum == 1 && duelistAssignments + 1 <= duelistCount) ||
+                (randomNum == 2 && strategistAssignments + 1 <= strategistCount) ||
+                attemptsMade > 100) {
+                roleSelectionValid = true;
+
+                if (attemptsMade > 90) { qDebug() << "ATTEMPTS MADE MAXXED"; };
+
+                // Update the role assignment totals and the player's role based on the selected role
+                if (randomNum == 0) {
+                    vanguardAssignments += 1;
+                    currentPlayer->setAssignedRole("Vanguard");
+                    currentPlayer->setVanguardCount(currentPlayer->getVanguardCount() + 1);
+                }
+                if (randomNum == 1) {
+                    duelistAssignments += 1;
+                    currentPlayer->setAssignedRole("Duelist");
+                    currentPlayer->setDuelistCount(currentPlayer->getDuelistCount() + 1);
+                }
+                if (randomNum == 2) {
+                    strategistAssignments += 1;
+                    currentPlayer->setAssignedRole("Strategist");
+                    currentPlayer->setStrategistCount(currentPlayer->getStrategistCount() + 1);
+                }
+
+                currentPlayer->setTotalGames(currentPlayer->getTotalGames() + 1);
+            }
+        }
+    }
+
+    // Assign the next half of players to random roles
+    for (int i=numPlayersToHandpick; i < selectedPlayersList.size(); i++) {
+        Player* currentPlayer = selectedPlayersList[i];
+        qDebug() << "     Assigning randomly: " << currentPlayer->getName();
+
+        // Loop until a valid role selection is made
+        bool roleSelectionValid = false;
+        int randomNum;
+        while (!roleSelectionValid) {
+            randomNum = intDist(randomGenerator);
+            qDebug() << "       Selected Role: " << randomNum;
+
+            // The role selection is valid if the previous amount of assignments to
+            // a role plus one is less than or equal to the maximum for that role
+            if ((randomNum == 0 && vanguardAssignments + 1 <= vanguardCount) ||
+                (randomNum == 1 && duelistAssignments + 1 <= duelistCount) ||
+                (randomNum == 2 && strategistAssignments + 1 <= strategistCount)) {
+                roleSelectionValid = true;
+
+                // Update the role assignment totals and the player's role based on the selected role
+                if (randomNum == 0) {
+                    vanguardAssignments += 1;
+                    currentPlayer->setAssignedRole("Vanguard");
+                }
+                if (randomNum == 1) {
+                    duelistAssignments += 1;
+                    currentPlayer->setAssignedRole("Duelist");
+                }
+                if (randomNum == 2) {
+                    strategistAssignments += 1;
+                    currentPlayer->setAssignedRole("Strategist");
+                }
+            }
+        }
+    }
 
     // Update the role labels
-    ui->playerRole_1->setText("Vanguard");
-    ui->playerRole_2->setText("Vanguard");
-    ui->playerRole_3->setText("Vanguard");
-    ui->playerRole_4->setText("Vanguard");
-    ui->playerRole_5->setText("Vanguard");
-    ui->playerRole_6->setText("Vanguard");
+    for (Player* player : selectedPlayersList) {
+        if (ui->playerBox_1->currentText().trimmed() == player->getName()) {
+            ui->playerRole_1->setText(player->getAssignedRole());
+        } else if (ui->playerBox_2->currentText().trimmed() == player->getName()) {
+            ui->playerRole_2->setText(player->getAssignedRole());
+        } else if (ui->playerBox_3->currentText().trimmed() == player->getName()) {
+            ui->playerRole_3->setText(player->getAssignedRole());
+        } else if (ui->playerBox_4->currentText().trimmed() == player->getName()) {
+            ui->playerRole_4->setText(player->getAssignedRole());
+        } else if (ui->playerBox_5->currentText().trimmed() == player->getName()) {
+            ui->playerRole_5->setText(player->getAssignedRole());
+        } else if (ui->playerBox_6->currentText().trimmed() == player->getName()) {
+            ui->playerRole_6->setText(player->getAssignedRole());
+        }
+    }
 
     qDebug() << "<-- MainWindow::assignRoles";
 }

@@ -1,7 +1,7 @@
 #include "player.h"
 
 Player::Player(QString &name)
-    : name(name), totalGames(0), vanguardCount(0), duelistCount(0), strategistCount(0)
+    : name(name), totalGames(0), vanguardCount(0), duelistCount(0), strategistCount(0), assignedRole("None")
 {}
 
 void Player::setTotalGames(int games)
@@ -22,6 +22,10 @@ void Player::setDuelistCount(int count)
 void Player::setStrategistCount(int count)
 {
     strategistCount = count;
+}
+
+void Player::setAssignedRole(QString newRole) {
+    assignedRole = newRole;
 }
 
 int Player::getTotalGames()
@@ -49,6 +53,11 @@ QString Player::getName()
     return name;
 }
 
+QString Player::getAssignedRole()
+{
+    return assignedRole;
+}
+
 // Overload the QDebug stream operator
 QDebug operator<<(QDebug debug, Player &player)
 {
@@ -56,17 +65,19 @@ QDebug operator<<(QDebug debug, Player &player)
           << ", Total Games: " << player.totalGames
           << ", Vanguard Count: " << player.vanguardCount
           << ", Duelist Count: " << player.duelistCount
-          << ", Strategist Count: " << player.strategistCount;
+          << ", Strategist Count: " << player.strategistCount
+          << ", Assigned Role: " << player.assignedRole;
     return debug;
 }
 
 // toString() method for string representation of the player
 QString Player::toString()
 {
-    return QString("Player Name: %1, Total Games: %2, Vanguard Count: %3, Duelist Count: %4, Strategist Count: %5")
+    return QString("Player Name: %1, Total Games: %2, Vanguard Count: %3, Duelist Count: %4, Strategist Count: %5, Assigned Role: %6")
     .arg(name)
         .arg(totalGames)
         .arg(vanguardCount)
         .arg(duelistCount)
-        .arg(strategistCount);
+        .arg(strategistCount)
+        .arg(assignedRole);
 }

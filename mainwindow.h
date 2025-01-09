@@ -6,6 +6,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
+#include <random>
+#include "filemanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,6 +27,7 @@ private slots:
     void createNewCSVFile();
     void openCSVFile();
     void assignRoles();
+    void showAboutDialog();
 
 private:
     Ui::MainWindow *ui;

@@ -15,12 +15,14 @@ public:
     void setVanguardCount(int count);
     void setDuelistCount(int count);
     void setStrategistCount(int count);
+    void setAssignedRole(QString role);
 
     // Getters
     int getTotalGames();
     int getVanguardCount();
     int getDuelistCount();
     int getStrategistCount();
+    QString getAssignedRole();
     QString getName();
 
     // Overload QDebug stream operator for easy printing
@@ -31,6 +33,7 @@ public:
 
 private:
     QString name;
+    QString assignedRole;
     int totalGames;
     int vanguardCount;
     int duelistCount;

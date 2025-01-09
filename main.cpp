@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     }
 
     // Set the application icon
-    QIcon appIcon(":/assets/app_icon.png");
+    QIcon appIcon(":/assets/app_icon.ico");
     a.setWindowIcon(appIcon);
 
     MainWindow w;
