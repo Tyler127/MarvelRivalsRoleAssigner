@@ -61,8 +61,8 @@ void MainWindow::showAboutDialog() {
     aboutBox.setText(
         "Marvel Rivals Role Assigner<br><br>"
         "Developed by Tyler Larson<br>"
-        "<a href=\"https://github.com/Tyler127/MarvelRivalsRoleAssigner\">Marvel Rivals Role Assigner Github Repo</a><br>"
-        "Version: 1.0.0<br>"
+        "<a href=\"https://github.com/Tyler127/MarvelRivalsRoleAssigner\">Marvel Rivals Role Assigner Github Repository</a><br>"
+        "Version: 0.1.1<br>"
         "© 2025"
         );
 

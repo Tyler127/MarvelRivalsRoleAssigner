@@ -29,7 +29,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         resources.qrc
         filemanager.h filemanager.cpp
         Player.h Player.cpp
+        appicon.rc
     )
+
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET MarvelRivalsRoleAssigner APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
