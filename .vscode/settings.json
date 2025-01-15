@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "xlocmes": "cpp",
+        "ostream": "cpp",
+        "system_error": "cpp",
+        "xlocale": "cpp"
+    }
+}

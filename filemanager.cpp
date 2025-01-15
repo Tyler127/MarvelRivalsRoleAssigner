@@ -124,6 +124,23 @@ QList<Player> filemanager::parseCurrentFileIntoPlayers() {
     return players;
 }
 
+bool filemanager::savePlayersToCSV(const QList<Player>& players, const QString& fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+
+    QTextStream out(&file);
+    out << "Player Name:,Total Games:,Vanguard Count:,Duelist Count:,Strategist Count:\n";
+    for (const Player& player : players) {
+        out << player.toCSVString() << "\n";
+    }
+
+    file.close();
+    return true;
+}
+
 QFile* filemanager::getFile()
 {
     return file;

@@ -31,6 +31,9 @@ public:
     // Method to return a string representation of the player
     QString toString();
 
+    // Method to return player data as a CSV string
+    QString toCSVString() const;
+
 private:
     QString name;
     QString assignedRole;

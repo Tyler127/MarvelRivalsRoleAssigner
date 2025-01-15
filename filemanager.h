@@ -61,6 +61,15 @@ public:
      *  @param newFile The new QFile* object.
      */
     void setFile(QFile* newFile);
+
+    /**
+     *  @brief Saves player data to a CSV file.
+     *  @param players The list of players to be saved.
+     *  @param fileName The name of the file to save the data to.
+     *  @return True if the file was successfully saved, otherwise false.
+     */
+    bool savePlayersToCSV(const QList<Player>& players, const QString& fileName);
+
 private:
     QFile *file;
     QString filePath;

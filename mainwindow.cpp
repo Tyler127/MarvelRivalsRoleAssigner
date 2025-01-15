@@ -40,8 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_openfile, &QAction::triggered, this, &MainWindow::openCSVFile);
     connect(ui->assignRolesButton, &QPushButton::clicked, this, &MainWindow::assignRoles);
     connect(ui->action_about, &QAction::triggered, this, &MainWindow::showAboutDialog);
-
-    //connect(ui->action_savefile, &QAction::triggered, this, &MainWindow::openCSVFile);
+    connect(ui->action_savefile, &QAction::triggered, this, &MainWindow::saveCSVFile);
+    connect(ui->copyOutputToClipboardButton, &QPushButton::clicked, this, &MainWindow::copyOutputToClipboard);
 
     qDebug() << "<-- MainWindow::MainWindow";
 }
@@ -230,6 +230,11 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
 void MainWindow::assignRoles() {
     qDebug() << "--> MainWindow::assignRoles";
 
+    // Reset each player's assigned role to "None"
+    for (Player& player : g_playersList) {
+        player.setAssignedRole("None");
+    }
+
     // Create a list of the selected strings of player names from the comboboxes
     QSet<QString> selectedStringsSet;
     selectedStringsSet.insert(ui->playerBox_1->currentText().trimmed());
@@ -238,6 +243,9 @@ void MainWindow::assignRoles() {
     selectedStringsSet.insert(ui->playerBox_4->currentText().trimmed());
     selectedStringsSet.insert(ui->playerBox_5->currentText().trimmed());
     selectedStringsSet.insert(ui->playerBox_6->currentText().trimmed());
+
+    // Remove empty strings from the set of selected names
+    selectedStringsSet.remove("");
     qDebug() << "    Selected names: " << selectedStringsSet;
 
     // Create a list of the selected players by finding them based on name
@@ -254,14 +262,16 @@ void MainWindow::assignRoles() {
     qDebug() << "    Selected names that aren't player objects: " << selectedStringsSet;
 
     // Remove any blank strings and add new player for never before seen names
+    qDebug() << "    Before creating new players selectedPlayersList:";
+    for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
     for (QString string : selectedStringsSet) {
-        if (string != "") {
-            Player newPlayer(string);
-            g_playersList.append(newPlayer);
-            selectedPlayersList.append(&newPlayer);
-            qDebug() << "    Created new player" << newPlayer;
-        }
+        Player* newPlayer = new Player(string);
+        g_playersList.append(*newPlayer);
+        selectedPlayersList.append(newPlayer);
+        qDebug() << "    Created new player: " << newPlayer->toString();
     }
+    qDebug() << "    After creating new players selectedPlayersList:";
+    for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
 
     // Setup the amount of each role to be selected
     // TODO: allow for configuration of role counts in the UI
@@ -275,6 +285,8 @@ void MainWindow::assignRoles() {
     std::uniform_int_distribution<> intDist(0, 2); // 0=vanguard, 1=duelist, 2=strategist
 
     // Shuffle list of selected players for more randomness
+    qDebug() << "    Pre-shuffled players list:";
+    for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
     std::shuffle(selectedPlayersList.begin(), selectedPlayersList.end(), randomGenerator);
     qDebug() << "    Shuffled players list:";
     for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
@@ -335,6 +347,7 @@ void MainWindow::assignRoles() {
                 roleSelectionValid = true;
 
                 if (attemptsMade > 90) { qDebug() << "ATTEMPTS MADE MAXXED"; };
+                qDebug() << "       Player counts bfr: " << currentPlayer->toString();
 
                 // Update the role assignment totals and the player's role based on the selected role
                 if (randomNum == 0) {
@@ -354,6 +367,7 @@ void MainWindow::assignRoles() {
                 }
 
                 currentPlayer->setTotalGames(currentPlayer->getTotalGames() + 1);
+                qDebug() << "       Player counts aft: " << currentPlayer->toString();
             }
         }
     }
@@ -376,20 +390,27 @@ void MainWindow::assignRoles() {
                 (randomNum == 1 && duelistAssignments + 1 <= duelistCount) ||
                 (randomNum == 2 && strategistAssignments + 1 <= strategistCount)) {
                 roleSelectionValid = true;
+                qDebug() << "       Player counts bfr: " << currentPlayer->toString();
 
                 // Update the role assignment totals and the player's role based on the selected role
                 if (randomNum == 0) {
                     vanguardAssignments += 1;
                     currentPlayer->setAssignedRole("Vanguard");
+                    currentPlayer->setVanguardCount(currentPlayer->getVanguardCount() + 1);
                 }
                 if (randomNum == 1) {
                     duelistAssignments += 1;
                     currentPlayer->setAssignedRole("Duelist");
+                    currentPlayer->setDuelistCount(currentPlayer->getDuelistCount() + 1);
                 }
                 if (randomNum == 2) {
                     strategistAssignments += 1;
                     currentPlayer->setAssignedRole("Strategist");
+                    currentPlayer->setStrategistCount(currentPlayer->getStrategistCount() + 1);
                 }
+
+                currentPlayer->setTotalGames(currentPlayer->getTotalGames() + 1);
+                qDebug() << "       Player counts aft: " << currentPlayer->toString();
             }
         }
     }
@@ -409,7 +430,104 @@ void MainWindow::assignRoles() {
         } else if (ui->playerBox_6->currentText().trimmed() == player->getName()) {
             ui->playerRole_6->setText(player->getAssignedRole());
         }
+
+        qDebug() << "       Player at end: " << player->toString();
     }
 
     qDebug() << "<-- MainWindow::assignRoles";
+}
+
+void MainWindow::saveCSVFile()
+{
+    qDebug() << "--> MainWindow::saveCSVFile";
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Save CSV File", "", "CSV Files (*.csv);;All Files (*)");
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Error", "Unable to save the file.");
+        return;
+    }
+
+    QTextStream out(&file);
+    out << "Player Name:,Total Games:,Vanguard Count:,Duelist Count:,Strategist Count:\n";
+    for (const Player& player : g_playersList) {
+        out << player.toCSVString() << "\n";
+    }
+
+    file.close();
+    QMessageBox::information(this, "File Saved", "CSV file saved successfully.");
+
+    qDebug() << "<-- MainWindow::saveCSVFile";
+}
+
+void MainWindow::copyOutputToClipboard()
+{
+    qDebug() << "--> MainWindow::copyOutputToClipboard";
+
+    // Display a notification saying that there was nothing to be copied
+    if (g_playersList.isEmpty()) {
+        QLabel *notification = new QLabel("No results to copy", this);
+        notification->setStyleSheet("QLabel { background-color : lightgray; color : black; padding: 5px; }");
+        notification->setAlignment(Qt::AlignCenter);
+        notification->setGeometry((width() - 200) / 2, (height() - 50) / 2, 200, 50);
+        notification->show();
+        QTimer::singleShot(2000, notification, &QWidget::deleteLater);
+
+        qDebug() << "<-- MainWindow::copyOutputToClipboard";
+        return;
+    }
+
+    // Initialize the output string
+    QString clipboardText = "```\n";
+    clipboardText += QString("%1 | %2 | %3 | %4\n")
+        .arg("Name", -10)
+        .arg("Role", -10)
+        .arg("% of Games", -10)
+        .arg("Times Played", -10);
+    clipboardText += "---------------------------------------------\n";
+
+    // Go through each player and if they have an assigned role add their info to the output string
+    for (Player& player : g_playersList) {
+        qDebug() << "       Player: " << player;
+
+        int roleCount = 0;
+        if (player.getAssignedRole() == "Vanguard") {
+            roleCount = player.getVanguardCount();
+        } else if (player.getAssignedRole() == "Duelist") {
+            roleCount = player.getDuelistCount();
+        } else if (player.getAssignedRole() == "Strategist") {
+            roleCount = player.getStrategistCount();
+        }
+
+        if (roleCount) {
+            qDebug() << "       Player copied: " << player.getName();
+            double percentagePlayed = (player.getTotalGames() > 0) ? (static_cast<double>(roleCount) / player.getTotalGames()) * 100 : 0;
+
+            clipboardText += QString("%1 | %2 | %3 | %4\n")
+                .arg(player.getName(), -10)
+                .arg(player.getAssignedRole(), -10)
+                .arg(QString::number(percentagePlayed, 'f', 2), -10)
+                .arg(roleCount, -10);
+        }
+    }
+    clipboardText += "```";
+
+    // Send the text to the clipboard
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(clipboardText);
+
+    // Show a temporary success notification
+    QLabel *notification = new QLabel("Copied to Clipboard", this);
+    notification->setStyleSheet("QLabel { background-color : lightgray; color : black; padding: 5px; }");
+    notification->setAlignment(Qt::AlignCenter);
+    notification->setGeometry((width() - 200) / 2, (height() - 50) / 2, 200, 50);
+    notification->show();
+    QTimer::singleShot(2000, notification, &QWidget::deleteLater);
+
+    qDebug() << "<-- MainWindow::copyOutputToClipboard";
 }

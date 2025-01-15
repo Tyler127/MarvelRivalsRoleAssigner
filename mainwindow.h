@@ -6,6 +6,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QClipboard>
+#include <QTimer>
 #include <random>
 #include "filemanager.h"
 
@@ -28,6 +30,8 @@ private slots:
     void openCSVFile();
     void assignRoles();
     void showAboutDialog();
+    void saveCSVFile();
+    void copyOutputToClipboard();
 
 private:
     Ui::MainWindow *ui;

@@ -81,3 +81,12 @@ QString Player::toString()
         .arg(strategistCount)
         .arg(assignedRole);
 }
+
+QString Player::toCSVString() const {
+    return QString("%1,%2,%3,%4,%5")
+        .arg(name)
+        .arg(totalGames)
+        .arg(vanguardCount)
+        .arg(duelistCount)
+        .arg(strategistCount);
+}
