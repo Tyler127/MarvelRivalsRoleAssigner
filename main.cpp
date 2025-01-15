@@ -49,14 +49,16 @@ int main(int argc, char *argv[])
     QIcon appIcon(":/assets/app_icon.ico");
     a.setWindowIcon(appIcon);
 
+    qDebug() << "Application Launching";
     MainWindow w;
     w.show();
     int result = a.exec();
+    qDebug() << "Application Closed";
 
     // Close the log file
     if (useLogFile) {
         logFile.close();
     }
-
+    
     return result;
 }

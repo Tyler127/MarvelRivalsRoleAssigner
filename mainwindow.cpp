@@ -78,8 +78,10 @@ void MainWindow::createNewCSVFile()
 
     // Get file location from user
     QString fileName = QFileDialog::getSaveFileName(this, "Create New CSV File", "", "CSV Files (*.csv);;All Files (*)");
+    qDebug() << "    Selected file name: " << fileName;
 
     if (fileName.isEmpty()) {
+        qDebug() << "    ERROR: No file name provided.";
         return;
     }
 
@@ -89,6 +91,7 @@ void MainWindow::createNewCSVFile()
         reply = QMessageBox::question(this, "Overwrite File", "File already exists. Do you want to overwrite it?",
                                       QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::No) {
+            qDebug() << "    Message Box Response: User chose not to overwrite the existing file.";
             return;
         }
     }
@@ -96,12 +99,14 @@ void MainWindow::createNewCSVFile()
     // Create and open the file for reading and writing
     QFile file(fileName);
     if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        qCritical() << "    CRITICAL ERROR: Unable to create the file.";
         QMessageBox::critical(this, "Error", "Unable to create the file.");
         return;
     }
 
     // Inform the user that the file was created
     QMessageBox::information(this, "File Created", "New CSV file created successfully.");
+    qDebug() << "    New CSV file created successfully.";
 
     processCSVFile(&file, fileName);
 
@@ -115,14 +120,17 @@ void MainWindow::openCSVFile()
 
     // Get file location from user
     QString fileName = QFileDialog::getOpenFileName(this, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)");
+    qDebug() << "    Selected file name: " << fileName;
 
     if (fileName.isEmpty()) {
+        qDebug() << "    ERROR: No file name provided.";
         return;
     }
 
     // Open the file for reading and writing
     QFile file(fileName);
     if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        qCritical() << "    CRITICAL ERROR: Unable to open the file.";
         QMessageBox::critical(this, "Error", "Unable to open the file.");
         return;
     }
@@ -142,13 +150,14 @@ void MainWindow::processCSVFile(QFile* file, QString fileName)
     QFileInfo fileInfo(fileName);
     QString baseFileName = fileInfo.fileName();
     ui->currentFileNameLabel->setText(baseFileName);
+    qDebug() << "    Current file name label set to: " << baseFileName;
 
     // Set the display text to the file's data
     QStringList fileDisplayData = g_fileManager->parseCurrentFile();
     QString displayString = fileDisplayData.join("\n");
     ui->fileContentsLabel->setText(displayString);
-    qDebug() << "   Display String: " << displayString;
-    qDebug() << "   File content display set.";
+    qDebug() << "    Display String: " << displayString;
+    qDebug() << "    File content display set.";
 
     // Setup the UI with the file's data
     QList<QStringList> fileData = g_fileManager->parseCurrentFileIntoColumns();
@@ -158,7 +167,7 @@ void MainWindow::processCSVFile(QFile* file, QString fileName)
     // Create a list of players
     g_playersList = g_fileManager->parseCurrentFileIntoPlayers();
     for (Player player : g_playersList) {
-        qDebug() << "   " << player;
+        qDebug() << "    Player: " << player;
     }
 
     qDebug() << "<-- MainWindow::processCSVFile";
@@ -170,18 +179,21 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
     qDebug() << "--> MainWindow::setupUIFromCSV";
 
     // Exit the function if no file data was parsed
-    if (!fileData.size()) { return; }
+    if (!fileData.size()) {
+        qDebug() << "    No file data parsed.";
+        return;
+    }
 
     QStringList playerNames = fileData[0];
     playerNames.removeFirst(); // Remove the column header from the list
-
-    qDebug() << "   " << playerNames;
+    qDebug() << "    Player names: " << playerNames;
 
     // Set the initial text for the comboboxes
     // TODO: remove all previous combobox options if there are any before adding any new ones. This is for when a new file is opened.
     QString prevName;
     for (int i=0; i < 6 && i < playerNames.size(); ++i) {
         QString name = playerNames[i];
+        qDebug() << "    Adding player name to combobox: " << name;
 
         switch(i) {
             case 0:
@@ -212,6 +224,7 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
     ui->playerBox_4->addItem("");
     ui->playerBox_5->addItem("");
     ui->playerBox_6->addItem("");
+    qDebug() << "    Added blank options to comboboxes.";
 
     // Add each name as a dropdown option to the comboboxes
     for (QString name : playerNames) {
@@ -222,6 +235,7 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
         ui->playerBox_5->addItem(name);
         ui->playerBox_6->addItem(name);
     }
+    qDebug() << "    Added player names to comboboxes.";
 
     qDebug() << "<-- MainWindow::setupUIFromCSV";
 }
@@ -234,6 +248,7 @@ void MainWindow::assignRoles() {
     for (Player& player : g_playersList) {
         player.setAssignedRole("None");
     }
+    qDebug() << "    Reset all player roles to 'None'.";
 
     // Create a list of the selected strings of player names from the comboboxes
     QSet<QString> selectedStringsSet;
@@ -253,7 +268,7 @@ void MainWindow::assignRoles() {
     for (Player& player : g_playersList) {
         if (selectedStringsSet.contains(player.getName())) {
             selectedPlayersList.append(&player);
-            qDebug() << "   " << player.getName() << " was selected in the UI";
+            qDebug() << "    " << player.getName() << " was selected in the UI";
 
             // Remove so that only names never used previously remain in the set
             selectedStringsSet.remove(player.getName());
@@ -306,7 +321,7 @@ void MainWindow::assignRoles() {
     // Assign the first half of players to their least played role
     for (int i=0; i < numPlayersToHandpick; i++) {
         Player* currentPlayer = selectedPlayersList[i];
-        qDebug() << "     Assigning handpick: " << currentPlayer->getName();
+        qDebug() << "    Assigning handpick: " << currentPlayer->getName();
 
         // Find which role/s the player has been selected for the least
         int minCount = std::min({currentPlayer->getVanguardCount(), currentPlayer->getDuelistCount(), currentPlayer->getStrategistCount()});
@@ -375,7 +390,7 @@ void MainWindow::assignRoles() {
     // Assign the next half of players to random roles
     for (int i=numPlayersToHandpick; i < selectedPlayersList.size(); i++) {
         Player* currentPlayer = selectedPlayersList[i];
-        qDebug() << "     Assigning randomly: " << currentPlayer->getName();
+        qDebug() << "    Assigning randomly: " << currentPlayer->getName();
 
         // Loop until a valid role selection is made
         bool roleSelectionValid = false;
@@ -442,6 +457,7 @@ void MainWindow::saveCSVFile()
     qDebug() << "--> MainWindow::saveCSVFile";
 
     QString fileName = QFileDialog::getSaveFileName(this, "Save CSV File", "", "CSV Files (*.csv);;All Files (*)");
+    qDebug() << "    Selected file name: " << fileName;
 
     if (fileName.isEmpty()) {
         return;

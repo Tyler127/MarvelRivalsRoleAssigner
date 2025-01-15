@@ -3,6 +3,9 @@
         "xlocmes": "cpp",
         "ostream": "cpp",
         "system_error": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "format": "cpp",
+        "atomic": "cpp",
+        "memory": "cpp"
     }
 }
