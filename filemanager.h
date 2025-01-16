@@ -49,7 +49,7 @@ public:
      *  @brief Creates a list of Player objects using the file's data.
      *  @return A list of player objects.
      */
-    QList<Player> parseCurrentFileIntoPlayers();
+    QList<Player*> parseCurrentFileIntoPlayers();
 
     /**
      *  @brief Returns the current file object.

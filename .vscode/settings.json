@@ -6,6 +6,7 @@
         "xlocale": "cpp",
         "format": "cpp",
         "atomic": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "xstring": "cpp"
     }
 }

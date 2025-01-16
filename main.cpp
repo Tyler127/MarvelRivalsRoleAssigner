@@ -8,7 +8,7 @@
 #include <QDateTime>
 
 // Config settings
-bool useLogFile = true;
+bool useLogFile = false;
 
 // Global log file
 QFile logFile;

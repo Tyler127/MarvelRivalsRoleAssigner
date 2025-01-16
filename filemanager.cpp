@@ -80,10 +80,10 @@ QList<QStringList> filemanager::parseCurrentFileIntoColumns()
     return columns;
 }
 
-QList<Player> filemanager::parseCurrentFileIntoPlayers() {
+QList<Player*> filemanager::parseCurrentFileIntoPlayers() {
     qDebug() << "--> filemanager::parseCurrentFileIntoPlayers";
 
-    QList<Player> players;
+    QList<Player*> players;
 
     if (!file || !file->isOpen())
         return players;
@@ -108,11 +108,11 @@ QList<Player> filemanager::parseCurrentFileIntoPlayers() {
             int strategistCount = fields[4].trimmed().toInt();
 
             // Create a Player object and add to the list
-            Player player(name);
-            player.setTotalGames(totalGames);
-            player.setVanguardCount(vanguardCount);
-            player.setDuelistCount(duelistCount);
-            player.setStrategistCount(strategistCount);
+            Player* player = new Player(name);
+            player->setTotalGames(totalGames);
+            player->setVanguardCount(vanguardCount);
+            player->setDuelistCount(duelistCount);
+            player->setStrategistCount(strategistCount);
 
             players.append(player);
         } else {

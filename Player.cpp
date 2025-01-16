@@ -1,6 +1,6 @@
 #include "player.h"
 
-Player::Player(QString &name)
+Player::Player(QString name)
     : name(name), totalGames(0), vanguardCount(0), duelistCount(0), strategistCount(0), assignedRole("None")
 {}
 

@@ -2,7 +2,7 @@
 #include "./ui_mainwindow.h"
 
 filemanager* g_fileManager = new filemanager();
-QList<Player> g_playersList;
+QList<Player*> g_playersList;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -166,8 +166,8 @@ void MainWindow::processCSVFile(QFile* file, QString fileName)
 
     // Create a list of players
     g_playersList = g_fileManager->parseCurrentFileIntoPlayers();
-    for (Player player : g_playersList) {
-        qDebug() << "    Player: " << player;
+    for (Player* player : g_playersList) {
+        qDebug() << "    Player: " << player->toString();
     }
 
     qDebug() << "<-- MainWindow::processCSVFile";
@@ -245,8 +245,8 @@ void MainWindow::assignRoles() {
     qDebug() << "--> MainWindow::assignRoles";
 
     // Reset each player's assigned role to "None"
-    for (Player& player : g_playersList) {
-        player.setAssignedRole("None");
+    for (Player* player : g_playersList) {
+        player->setAssignedRole("None");
     }
     qDebug() << "    Reset all player roles to 'None'.";
 
@@ -265,13 +265,13 @@ void MainWindow::assignRoles() {
 
     // Create a list of the selected players by finding them based on name
     QList<Player*> selectedPlayersList;
-    for (Player& player : g_playersList) {
-        if (selectedStringsSet.contains(player.getName())) {
-            selectedPlayersList.append(&player);
-            qDebug() << "    " << player.getName() << " was selected in the UI";
+    for (Player* player : g_playersList) {
+        if (selectedStringsSet.contains(player->getName())) {
+            selectedPlayersList.append(player);
+            qDebug() << "    " << player->getName() << " was selected in the UI";
 
             // Remove so that only names never used previously remain in the set
-            selectedStringsSet.remove(player.getName());
+            selectedStringsSet.remove(player->getName());
         }
     }
     qDebug() << "    Selected names that aren't player objects: " << selectedStringsSet;
@@ -281,7 +281,7 @@ void MainWindow::assignRoles() {
     for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
     for (QString string : selectedStringsSet) {
         Player* newPlayer = new Player(string);
-        g_playersList.append(*newPlayer);
+        g_playersList.append(newPlayer);
         selectedPlayersList.append(newPlayer);
         qDebug() << "    Created new player: " << newPlayer->toString();
     }
@@ -471,8 +471,8 @@ void MainWindow::saveCSVFile()
 
     QTextStream out(&file);
     out << "Player Name:,Total Games:,Vanguard Count:,Duelist Count:,Strategist Count:\n";
-    for (const Player& player : g_playersList) {
-        out << player.toCSVString() << "\n";
+    for (Player* player : g_playersList) {
+        out << player->toCSVString() << "\n";
     }
 
     file.close();
@@ -508,25 +508,25 @@ void MainWindow::copyOutputToClipboard()
     clipboardText += "---------------------------------------------\n";
 
     // Go through each player and if they have an assigned role add their info to the output string
-    for (Player& player : g_playersList) {
+    for (Player* player : g_playersList) {
         qDebug() << "       Player: " << player;
 
         int roleCount = 0;
-        if (player.getAssignedRole() == "Vanguard") {
-            roleCount = player.getVanguardCount();
-        } else if (player.getAssignedRole() == "Duelist") {
-            roleCount = player.getDuelistCount();
-        } else if (player.getAssignedRole() == "Strategist") {
-            roleCount = player.getStrategistCount();
+        if (player->getAssignedRole() == "Vanguard") {
+            roleCount = player->getVanguardCount();
+        } else if (player->getAssignedRole() == "Duelist") {
+            roleCount = player->getDuelistCount();
+        } else if (player->getAssignedRole() == "Strategist") {
+            roleCount = player->getStrategistCount();
         }
 
         if (roleCount) {
-            qDebug() << "       Player copied: " << player.getName();
-            double percentagePlayed = (player.getTotalGames() > 0) ? (static_cast<double>(roleCount) / player.getTotalGames()) * 100 : 0;
+            qDebug() << "       Player copied: " << player->getName();
+            double percentagePlayed = (player->getTotalGames() > 0) ? (static_cast<double>(roleCount) / player->getTotalGames()) * 100 : 0;
 
             clipboardText += QString("%1 | %2 | %3 | %4\n")
-                .arg(player.getName(), -10)
-                .arg(player.getAssignedRole(), -10)
+                .arg(player->getName(), -10)
+                .arg(player->getAssignedRole(), -10)
                 .arg(QString::number(percentagePlayed, 'f', 2), -10)
                 .arg(roleCount, -10);
         }

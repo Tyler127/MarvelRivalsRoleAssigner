@@ -8,7 +8,7 @@ class Player
 {
 public:
     // Constructor
-    Player(QString &name);
+    Player(QString name);
 
     // Setters
     void setTotalGames(int games);
