@@ -1,11 +1,11 @@
-#include "filemanager.h"
+#include "FileManager.h"
 
-filemanager::filemanager()
+FileManager::FileManager()
     : file(nullptr)
 {
 }
 
-filemanager::~filemanager() {
+FileManager::~FileManager() {
     delete file;
 }
 
@@ -17,9 +17,9 @@ bool saveDataToCSV(QStringList& data) {
     return true;
 }
 
-QStringList filemanager::parseCurrentFile()
+QStringList FileManager::parseCurrentFile()
 {
-    qDebug() << "--> filemanager::parseCurrentFile";
+    qDebug() << "--> FileManager::parseCurrentFile";
 
     QStringList fileContents;
 
@@ -41,12 +41,12 @@ QStringList filemanager::parseCurrentFile()
     qDebug() << "    " << fileContents;
     return fileContents;
 
-    qDebug() << "<-- filemanager::parseCurrentFile";
+    qDebug() << "<-- FileManager::parseCurrentFile";
 }
 
-QList<QStringList> filemanager::parseCurrentFileIntoColumns()
+QList<QStringList> FileManager::parseCurrentFileIntoColumns()
 {
-    qDebug() << "--> filemanager::parseCurrentFileIntoColumns";
+    qDebug() << "--> FileManager::parseCurrentFileIntoColumns";
     file->seek(0);
     QTextStream in(file);
     bool isFirstLine = true;
@@ -76,12 +76,12 @@ QList<QStringList> filemanager::parseCurrentFileIntoColumns()
 
     qDebug() << "    Columns:" << columns;
     qDebug() << "     File data parsed into columns.";
-    qDebug() << "<-- filemanager::parseCurrentFileIntoColumns";
+    qDebug() << "<-- FileManager::parseCurrentFileIntoColumns";
     return columns;
 }
 
-QList<Player*> filemanager::parseCurrentFileIntoPlayers() {
-    qDebug() << "--> filemanager::parseCurrentFileIntoPlayers";
+QList<Player*> FileManager::parseCurrentFileIntoPlayers() {
+    qDebug() << "--> FileManager::parseCurrentFileIntoPlayers";
 
     QList<Player*> players;
 
@@ -120,11 +120,11 @@ QList<Player*> filemanager::parseCurrentFileIntoPlayers() {
         }
     }
 
-    qDebug() << "<-- filemanager::parseCurrentFileIntoPlayers";
+    qDebug() << "<-- FileManager::parseCurrentFileIntoPlayers";
     return players;
 }
 
-bool filemanager::savePlayersToCSV(const QList<Player>& players, const QString& fileName)
+bool FileManager::savePlayersToCSV(const QList<Player>& players, const QString& fileName)
 {
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -141,14 +141,14 @@ bool filemanager::savePlayersToCSV(const QList<Player>& players, const QString& 
     return true;
 }
 
-QFile* filemanager::getFile()
+QFile* FileManager::getFile()
 {
     return file;
 }
 
-void filemanager::setFile(QFile* newFile)
+void FileManager::setFile(QFile* newFile)
 {
-    qDebug() << "--> filemanager::setFile";
+    qDebug() << "--> FileManager::setFile";
 
     qDebug() << "    Setting new file object.";
     this->file = newFile;
@@ -157,5 +157,5 @@ void filemanager::setFile(QFile* newFile)
         qDebug() << "    New filepath: " << filePath;
     }
 
-    qDebug() << "<-- filemanager::setFile";
+    qDebug() << "<-- FileManager::setFile";
 }

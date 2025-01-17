@@ -30,6 +30,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         filemanager.h filemanager.cpp
         Player.h Player.cpp
         appicon.rc
+        FileManager.cpp RoleAssigner.cpp
+        RoleAssigner.h
     )
 
 # Define target properties for Android with Qt 6 as:

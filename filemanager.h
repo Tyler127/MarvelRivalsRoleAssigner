@@ -1,5 +1,5 @@
-#ifndef FILEMANAGER_H
-#define FILEMANAGER_H
+#ifndef FileManager_H
+#define FileManager_H
 
 #include <QFile>
 #include <QString>
@@ -12,11 +12,11 @@
 #include <QDebug>
 #include "Player.h"
 
-class filemanager
+class FileManager
 {
 public:
-    filemanager();
-    ~filemanager();
+    FileManager();
+    ~FileManager();
 
     /**
      *  @brief Creates a new CSV file with the given filename
@@ -75,4 +75,4 @@ private:
     QString filePath;
 };
 
-#endif // FILEMANAGER_H
+#endif // FileManager_H

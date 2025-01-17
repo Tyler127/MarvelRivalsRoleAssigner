@@ -9,7 +9,8 @@
 #include <QClipboard>
 #include <QTimer>
 #include <random>
-#include "filemanager.h"
+#include "FileManager.h"
+#include "RoleAssigner.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -39,4 +40,5 @@ private:
     void processCSVFile(QFile* file, QString fileName);
     void setupUIFromCSV(QList<QStringList> fileData);
 };
+
 #endif // MAINWINDOW_H
