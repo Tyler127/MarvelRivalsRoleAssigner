@@ -7,6 +7,7 @@
         "format": "cpp",
         "atomic": "cpp",
         "memory": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "optional": "cpp"
     }
 }

@@ -27,13 +27,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         resources.qrc
-        filemanager.h filemanager.cpp
+        FileManager.cpp FileManager.h
         Player.h Player.cpp
         appicon.rc
-        FileManager.cpp RoleAssigner.cpp
-        RoleAssigner.h
+        RoleAssigner.cpp RoleAssigner.h
         ClipboardManager.cpp ClipboardManager.h
-        application_config.json
         Config.h Config.cpp
     )
 

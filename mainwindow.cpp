@@ -2,8 +2,6 @@
 #include "./ui_mainwindow.h"
 
 FileManager* g_fileManager = new FileManager();
-
-const QString VERSION_NUMBER = "0.2.0";
 QList<Player*> g_playersList;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -12,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , roleAssigner(new RoleAssigner(this))
     , clipboardManager(new ClipboardManager(this))
 {
-    qDebug() << "--> MainWindow::MainWindow";
+    qDebug() << "--> [MainWindow::MainWindow]";
 
     ui->setupUi(this);
 
@@ -54,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::copyOutputToClipboardSignal, clipboardManager, &ClipboardManager::copyOutputToClipboard);
     connect(clipboardManager, &ClipboardManager::noResultsToCopy, this, &MainWindow::showNoResultsToCopyNotification);
 
-    qDebug() << "<-- MainWindow::MainWindow";
+    qDebug() << "<-- [MainWindow::MainWindow]";
 }
 
 MainWindow::~MainWindow()
@@ -64,20 +62,20 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::assignRoles() {
-    qDebug() << "--> MainWindow::assignRoles";
+    qDebug() << "--> [MainWindow::assignRoles]";
     emit assignRolesSignal(ui, g_playersList);
-    qDebug() << "<-- MainWindow::assignRoles";
+    qDebug() << "<-- [MainWindow::assignRoles]";
 }
 
 void MainWindow::copyOutputToClipboard()
 {
-    qDebug() << "--> MainWindow::copyOutputToClipboard";
+    qDebug() << "--> [MainWindow::copyOutputToClipboard]";
     emit copyOutputToClipboardSignal(g_playersList);
-    qDebug() << "<-- MainWindow::copyOutputToClipboard";
+    qDebug() << "<-- [MainWindow::copyOutputToClipboard]";
 }
 
 void MainWindow::showAboutDialog() {
-    qDebug() << "--> MainWindow::showAboutDialog";
+    qDebug() << "--> [MainWindow::showAboutDialog]";
 
     QMessageBox aboutBox;
     aboutBox.setWindowTitle("About This Application");
@@ -86,25 +84,25 @@ void MainWindow::showAboutDialog() {
         "Marvel Rivals Role Assigner<br><br>"
         "Developed by Tyler Larson<br>"
         "<a href=\"https://github.com/Tyler127/MarvelRivalsRoleAssigner\">Marvel Rivals Role Assigner Github Repository</a><br>"
-        "Version: " + VERSION_NUMBER + "<br>"
+        "Version: " + Config::getInstance().getVersionNumber() + "<br>"
         "© 2025"
     );
     aboutBox.setStandardButtons(QMessageBox::Ok);
     aboutBox.exec();
 
-    qDebug() << "<-- MainWindow::showAboutDialog";
+    qDebug() << "<-- [MainWindow::showAboutDialog]";
 }
 
 void MainWindow::createNewCSVFile()
 {
-    qDebug() << "--> MainWindow::createNewCSVFile";
+    qDebug() << "--> [MainWindow::createNewCSVFile]";
 
     // Get file location from user
     QString fileName = QFileDialog::getSaveFileName(this, "Create New CSV File", "", "CSV Files (*.csv);;All Files (*)");
-    qDebug() << "    Selected file name: " << fileName;
+    qDebug() << "    [MainWindow::createNewCSVFile]: Selected file name: " << fileName;
 
     if (fileName.isEmpty()) {
-        qDebug() << "    ERROR: No file name provided.";
+        qDebug() << "    [MainWindow::createNewCSVFile]: ERROR: No file name provided.";
         return;
     }
 
@@ -114,7 +112,7 @@ void MainWindow::createNewCSVFile()
         reply = QMessageBox::question(this, "Overwrite File", "File already exists. Do you want to overwrite it?",
                                       QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::No) {
-            qDebug() << "    Message Box Response: User chose not to overwrite the existing file.";
+            qDebug() << "    [MainWindow::createNewCSVFile]: Message Box Response: User chose not to overwrite the existing file.";
             return;
         }
     }
@@ -122,63 +120,63 @@ void MainWindow::createNewCSVFile()
     // Create and open the file for reading and writing
     QFile file(fileName);
     if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        qCritical() << "    CRITICAL ERROR: Unable to create the file.";
+        qCritical() << "    [MainWindow::createNewCSVFile]: CRITICAL ERROR: Unable to create the file.";
         QMessageBox::critical(this, "Error", "Unable to create the file.");
         return;
     }
 
     // Inform the user that the file was created
     QMessageBox::information(this, "File Created", "New CSV file created successfully.");
-    qDebug() << "    New CSV file created successfully.";
+    qDebug() << "    [MainWindow::createNewCSVFile]: New CSV file created successfully.";
 
     processCSVFile(&file, fileName);
 
-    qDebug() << "<-- MainWindow::createNewCSVFile";
+    qDebug() << "<-- [MainWindow::createNewCSVFile]";
 }
 
 void MainWindow::openCSVFile()
 {
-    qDebug() << "--> MainWindow::openCSVFile";
+    qDebug() << "--> [MainWindow::openCSVFile]";
 
     // Get file location from user
     QString fileName = QFileDialog::getOpenFileName(this, "Open CSV File", "", "CSV Files (*.csv);;All Files (*)");
-    qDebug() << "    Selected file name: " << fileName;
+    qDebug() << "    [MainWindow::openCSVFile]: Selected file name: " << fileName;
 
     if (fileName.isEmpty()) {
-        qDebug() << "    ERROR: No file name provided.";
+        qDebug() << "    [MainWindow::openCSVFile]: ERROR: No file name provided.";
         return;
     }
 
     // Open the file for reading and writing
     QFile file(fileName);
     if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        qCritical() << "    CRITICAL ERROR: Unable to open the file.";
+        qCritical() << "    [MainWindow::openCSVFile]: CRITICAL ERROR: Unable to open the file.";
         QMessageBox::critical(this, "Error", "Unable to open the file.");
         return;
     }
 
     processCSVFile(&file, fileName);
 
-    qDebug() << "<-- MainWindow::openCSVFile";
+    qDebug() << "<-- [MainWindow::openCSVFile]";
 }
 
 void MainWindow::processCSVFile(QFile* file, QString fileName)
 {
-    qDebug() << "--> MainWindow::processCSVFile";
+    qDebug() << "--> [MainWindow::processCSVFile]";
 
     // Set up the file and label
     g_fileManager->setFile(file);
     QFileInfo fileInfo(fileName);
     QString baseFileName = fileInfo.fileName();
     ui->currentFileNameLabel->setText(baseFileName);
-    qDebug() << "    Current file name label set to: " << baseFileName;
+    qDebug() << "    [MainWindow::processCSVFile]: Current file name label set to: " << baseFileName;
 
     // Set the display text to the file's data
     QStringList fileDisplayData = g_fileManager->parseCurrentFile();
     QString displayString = fileDisplayData.join("\n");
     ui->fileContentsLabel->setText(displayString);
-    qDebug() << "    Display String: " << displayString;
-    qDebug() << "    File content display set.";
+    qDebug() << "    [MainWindow::processCSVFile]: Display String: " << displayString;
+    qDebug() << "    [MainWindow::processCSVFile]: File content display set.";
 
     // Setup the UI with the file's data
     QList<QStringList> fileData = g_fileManager->parseCurrentFileIntoColumns();
@@ -188,32 +186,32 @@ void MainWindow::processCSVFile(QFile* file, QString fileName)
     // Create a list of players
     g_playersList = g_fileManager->parseCurrentFileIntoPlayers();
     for (Player* player : g_playersList) {
-        qDebug() << "    Player: " << player->toString();
+        qDebug() << "    [MainWindow::processCSVFile]: Player: " << player->toString();
     }
 
-    qDebug() << "<-- MainWindow::processCSVFile";
+    qDebug() << "<-- [MainWindow::processCSVFile]";
 }
 
 void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
 {
-    qDebug() << "--> MainWindow::setupUIFromCSV";
+    qDebug() << "--> [MainWindow::setupUIFromCSV]";
 
     // Exit the function if no file data was parsed
     if (!fileData.size()) {
-        qDebug() << "    No file data parsed.";
+        qDebug() << "    [MainWindow::setupUIFromCSV]: No file data parsed.";
         return;
     }
 
     QStringList playerNames = fileData[0];
     playerNames.removeFirst(); // Remove the column header from the list
-    qDebug() << "    Player names: " << playerNames;
+    qDebug() << "    [MainWindow::setupUIFromCSV]: Player names: " << playerNames;
 
     // Set the initial text for the comboboxes
     // TODO: remove all previous combobox options if there are any before adding any new ones. This is for when a new file is opened.
     QString prevName;
     for (int i=0; i < 6 && i < playerNames.size(); ++i) {
         QString name = playerNames[i];
-        qDebug() << "    Adding player name to combobox: " << name;
+        qDebug() << "    [MainWindow::setupUIFromCSV]: Adding player name to combobox: " << name;
 
         switch(i) {
             case 0:
@@ -244,7 +242,7 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
     ui->playerBox_4->addItem("");
     ui->playerBox_5->addItem("");
     ui->playerBox_6->addItem("");
-    qDebug() << "    Added blank options to comboboxes.";
+    qDebug() << "    [MainWindow::setupUIFromCSV]: Added blank options to comboboxes.";
 
     // Add each name as a dropdown option to the comboboxes
     for (QString name : playerNames) {
@@ -255,17 +253,17 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
         ui->playerBox_5->addItem(name);
         ui->playerBox_6->addItem(name);
     }
-    qDebug() << "    Added player names to comboboxes.";
+    qDebug() << "    [MainWindow::setupUIFromCSV]: Added player names to comboboxes.";
 
-    qDebug() << "<-- MainWindow::setupUIFromCSV";
+    qDebug() << "<-- [MainWindow::setupUIFromCSV]";
 }
 
 void MainWindow::saveCSVFile()
 {
-    qDebug() << "--> MainWindow::saveCSVFile";
+    qDebug() << "--> [MainWindow::saveCSVFile]";
 
     QString fileName = QFileDialog::getSaveFileName(this, "Save CSV File", "", "CSV Files (*.csv);;All Files (*)");
-    qDebug() << "    Selected file name: " << fileName;
+    qDebug() << "    [MainWindow::saveCSVFile]: Selected file name: " << fileName;
 
     if (fileName.isEmpty()) {
         return;
@@ -286,16 +284,16 @@ void MainWindow::saveCSVFile()
     file.close();
     QMessageBox::information(this, "File Saved", "CSV file saved successfully.");
 
-    qDebug() << "<-- MainWindow::saveCSVFile";
+    qDebug() << "<-- [MainWindow::saveCSVFile]";
 }
 
 void MainWindow::showNoResultsToCopyNotification() {
-    qDebug() << "--> MainWindow::showNoResultsToCopyNotification";
+    qDebug() << "--> [MainWindow::showNoResultsToCopyNotification]";
     QLabel *notification = new QLabel("No results to copy", this);
     notification->setStyleSheet("QLabel { background-color : lightgray; color : black; padding: 5px; }");
     notification->setAlignment(Qt::AlignCenter);
     notification->setGeometry((width() - 200) / 2, (height() - 50) / 2, 200, 50);
     notification->show();
-    qDebug() << "<-- MainWindow::showNoResultsToCopyNotification";
     QTimer::singleShot(2000, notification, &QWidget::deleteLater);
+    qDebug() << "<-- [MainWindow::showNoResultsToCopyNotification]";
 }

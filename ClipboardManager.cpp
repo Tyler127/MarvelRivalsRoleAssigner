@@ -6,11 +6,11 @@ ClipboardManager::ClipboardManager(QObject *parent)
 
 void ClipboardManager::copyOutputToClipboard(QList<Player*>& playersList)
 {
-    qDebug() << "--> ClipboardManager::copyOutputToClipboard";
+    qDebug() << "--> [ClipboardManager::copyOutputToClipboard]";
 
     if (playersList.isEmpty()) {
         emit noResultsToCopy();
-        qDebug() << "<-- ClipboardManager::copyOutputToClipboard";
+        qDebug() << "<-- [ClipboardManager::copyOutputToClipboard]";
         return;
     }
 
@@ -50,5 +50,5 @@ void ClipboardManager::copyOutputToClipboard(QList<Player*>& playersList)
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setText(clipboardText);
 
-    qDebug() << "<-- ClipboardManager::copyOutputToClipboard";
+    qDebug() << "<-- [ClipboardManager::copyOutputToClipboard]";
 }

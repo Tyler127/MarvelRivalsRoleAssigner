@@ -5,13 +5,13 @@ RoleAssigner::RoleAssigner(QObject* parent) : QObject(parent) {
 }
 
 void RoleAssigner::assignRoles(Ui::MainWindow* ui, QList<Player*>& playersList) {
-    qDebug() << "--> RoleAssigner::assignRoles";
+    qDebug() << "--> [RoleAssigner::assignRoles]";
 
     // Reset each player's assigned role to "None"
     for (Player* player : playersList) {
         player->setAssignedRole("None");
     }
-    qDebug() << "    Reset all player roles to 'None'.";
+    qDebug() << "    [RoleAssigner::assignRoles]: Reset all player roles to 'None'.";
 
     // Create a list of the selected strings of player names from the comboboxes
     QSet<QString> selectedStringsSet;
@@ -24,32 +24,32 @@ void RoleAssigner::assignRoles(Ui::MainWindow* ui, QList<Player*>& playersList) 
 
     // Remove empty strings from the set of selected names
     selectedStringsSet.remove("");
-    qDebug() << "    Selected names: " << selectedStringsSet;
+    qDebug() << "    [RoleAssigner::assignRoles]: Selected names: " << selectedStringsSet;
 
     // Create a list of the selected players by finding them based on name
     QList<Player*> selectedPlayersList;
     for (Player* player : playersList) {
         if (selectedStringsSet.contains(player->getName())) {
             selectedPlayersList.append(player);
-            qDebug() << "    " << player->getName() << " was selected in the UI";
+            qDebug() << "    [RoleAssigner::assignRoles]: " << player->getName() << " was selected in the UI";
 
             // Remove so that only names never used previously remain in the set
             selectedStringsSet.remove(player->getName());
         }
     }
-    qDebug() << "    Selected names that aren't player objects: " << selectedStringsSet;
+    qDebug() << "    [RoleAssigner::assignRoles]: Selected names that aren't player objects: " << selectedStringsSet;
 
     // Remove any blank strings and add new player for never before seen names
-    qDebug() << "    Before creating new players selectedPlayersList:";
-    for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
+    qDebug() << "    [RoleAssigner::assignRoles]: Before creating new players selectedPlayersList:";
+    for (Player* player : selectedPlayersList) { qDebug() << "    [RoleAssigner::assignRoles]:   " << player->getName(); }
     for (QString string : selectedStringsSet) {
         Player* newPlayer = new Player(string);
         playersList.append(newPlayer);
         selectedPlayersList.append(newPlayer);
-        qDebug() << "    Created new player: " << newPlayer->toString();
+        qDebug() << "    [RoleAssigner::assignRoles]: Created new player: " << newPlayer->toString();
     }
-    qDebug() << "    After creating new players selectedPlayersList:";
-    for (Player* player : selectedPlayersList) { qDebug() << "       " << player->getName(); }
+    qDebug() << "    [RoleAssigner::assignRoles]: After creating new players selectedPlayersList:";
+    for (Player* player : selectedPlayersList) { qDebug() << "    [RoleAssigner::assignRoles]:   " << player->getName(); }
 
     // Setup the amount of each role to be selected
     // TODO: allow for configuration of role counts in the UI
@@ -65,9 +65,9 @@ void RoleAssigner::assignRoles(Ui::MainWindow* ui, QList<Player*>& playersList) 
     // Calculate the amount of players that need to be handpicked and randomized
     int numPlayersToHandpick = std::floor(static_cast<double>(selectedPlayersList.size()) / 2);
     int numPlayersToRandomize = std::ceil(static_cast<double>(selectedPlayersList.size()) / 2);
-    qDebug() << "    selectedPlayerList.size(): " << selectedPlayersList.size();
-    qDebug() << "    Num players to handpick: " << numPlayersToHandpick;
-    qDebug() << "    Num players to randomize: " << numPlayersToRandomize;
+    qDebug() << "    [RoleAssigner::assignRoles]: selectedPlayerList.size(): " << selectedPlayersList.size();
+    qDebug() << "    [RoleAssigner::assignRoles]: Num players to handpick: " << numPlayersToHandpick;
+    qDebug() << "    [RoleAssigner::assignRoles]: Num players to randomize: " << numPlayersToRandomize;
 
     // Shuffle list of selected players for more randomness
     shufflePlayers(selectedPlayersList);
@@ -94,28 +94,28 @@ void RoleAssigner::assignRoles(Ui::MainWindow* ui, QList<Player*>& playersList) 
             ui->playerRole_6->setText(player->getAssignedRole());
         }
 
-        qDebug() << "       Player at end: " << player->toString();
+        qDebug() << "    [RoleAssigner::assignRoles]:   Player at end: " << player->toString();
     }
 
-    qDebug() << "<-- RoleAssigner::assignRoles";
+    qDebug() << "<-- [RoleAssigner::assignRoles]";
 }
 
 void RoleAssigner::shufflePlayers(QList<Player*>& playersList) {
-    qDebug() << "--> RoleAssigner::shufflePlayers";
+    qDebug() << "--> [RoleAssigner::shufflePlayers]";
 
     std::random_device randomDevice;
     std::mt19937 randomGenerator(randomDevice());
     std::shuffle(playersList.begin(), playersList.end(), randomGenerator);
 
-    qDebug() << "<-- RoleAssigner::shufflePlayers";
+    qDebug() << "<-- [RoleAssigner::shufflePlayers]";
 }
 
 void RoleAssigner::assignHandpickedRoles(QList<Player*>& playersList, int numPlayersToHandpick, int& vanguardAssignments, int& duelistAssignments, int& strategistAssignments) {
-    qDebug() << "--> RoleAssigner::assignHandpickedRoles";
+    qDebug() << "--> [RoleAssigner::assignHandpickedRoles]";
 
     for (int i = 0; i < numPlayersToHandpick; i++) {
         Player* currentPlayer = playersList[i];
-        qDebug() << "    Assigning handpick: " << currentPlayer->getName();
+        qDebug() << "    [RoleAssigner::assignHandpickedRoles]: Assigning handpick: " << currentPlayer->getName();
 
         int minCount = std::min({currentPlayer->getVanguardCount(), currentPlayer->getDuelistCount(), currentPlayer->getStrategistCount()});
         std::vector<int> possibleRoles;
@@ -138,7 +138,7 @@ void RoleAssigner::assignHandpickedRoles(QList<Player*>& playersList, int numPla
             std::uniform_int_distribution<> intDist(0, possibleRoles.size() - 1);
             randomNum = possibleRoles[intDist(randomGenerator)];
             attemptsMade++;
-            qDebug() << "       Selected Role: " << randomNum;
+            qDebug() << "    [RoleAssigner::assignHandpickedRoles]:     Selected Role: " << randomNum;
 
             if ((randomNum == 0 && vanguardAssignments + 1 <= 2) ||
                 (randomNum == 1 && duelistAssignments + 1 <= 2) ||
@@ -146,8 +146,8 @@ void RoleAssigner::assignHandpickedRoles(QList<Player*>& playersList, int numPla
                 attemptsMade > 100) {
                 roleSelectionValid = true;
 
-                if (attemptsMade > 90) { qDebug() << "ATTEMPTS MADE MAXXED"; };
-                qDebug() << "       Player counts bfr: " << currentPlayer->toString();
+                if (attemptsMade > 90) { qDebug() << "   [RoleAssigner::assignHandpickedRoles]:     ATTEMPTS MADE MAXXED"; };
+                qDebug() << "    [RoleAssigner::assignHandpickedRoles]:     Player counts bfr: " << currentPlayer->toString();
 
                 if (randomNum == 0) {
                     vanguardAssignments += 1;
@@ -166,16 +166,16 @@ void RoleAssigner::assignHandpickedRoles(QList<Player*>& playersList, int numPla
                 }
 
                 currentPlayer->setTotalGames(currentPlayer->getTotalGames() + 1);
-                qDebug() << "       Player counts aft: " << currentPlayer->toString();
+                qDebug() << "    [RoleAssigner::assignHandpickedRoles]:     Player counts aft: " << currentPlayer->toString();
             }
         }
     }
 
-    qDebug() << "<-- RoleAssigner::assignHandpickedRoles";
+    qDebug() << "<-- [RoleAssigner::assignHandpickedRoles]";
 }
 
 void RoleAssigner::assignRandomRoles(QList<Player*>& playersList, int numPlayersToHandpick, int& vanguardAssignments, int& duelistAssignments, int& strategistAssignments) {
-    qDebug() << "--> RoleAssigner::assignRandomRoles";
+    qDebug() << "--> [RoleAssigner::assignRandomRoles]";
     
     std::random_device randomDevice;
     std::mt19937 randomGenerator(randomDevice());
@@ -183,19 +183,19 @@ void RoleAssigner::assignRandomRoles(QList<Player*>& playersList, int numPlayers
 
     for (int i = numPlayersToHandpick; i < playersList.size(); i++) {
         Player* currentPlayer = playersList[i];
-        qDebug() << "    Assigning randomly: " << currentPlayer->getName();
+        qDebug() << "    [RoleAssigner::assignRandomRoles]: Assigning randomly: " << currentPlayer->getName();
 
         bool roleSelectionValid = false;
         int randomNum;
         while (!roleSelectionValid) {
             randomNum = intDist(randomGenerator);
-            qDebug() << "       Selected Role: " << randomNum;
+            qDebug() << "    [RoleAssigner::assignRandomRoles]:     Selected Role: " << randomNum;
 
             if ((randomNum == 0 && vanguardAssignments + 1 <= 2) ||
                 (randomNum == 1 && duelistAssignments + 1 <= 2) ||
                 (randomNum == 2 && strategistAssignments + 1 <= 2)) {
                 roleSelectionValid = true;
-                qDebug() << "       Player counts bfr: " << currentPlayer->toString();
+                qDebug() << "    [RoleAssigner::assignRandomRoles]:     Player counts bfr: " << currentPlayer->toString();
 
                 if (randomNum == 0) {
                     vanguardAssignments += 1;
@@ -214,10 +214,10 @@ void RoleAssigner::assignRandomRoles(QList<Player*>& playersList, int numPlayers
                 }
 
                 currentPlayer->setTotalGames(currentPlayer->getTotalGames() + 1);
-                qDebug() << "       Player counts aft: " << currentPlayer->toString();
+                qDebug() << "    [RoleAssigner::assignRandomRoles]:     Player counts aft: " << currentPlayer->toString();
             }
         }
     }
 
-    qDebug() << "<-- RoleAssigner::assignRandomRoles";
+    qDebug() << "<-- [RoleAssigner::assignRandomRoles]";
 }

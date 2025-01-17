@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "Config.h"
 
 #include <QApplication>
 #include <QLocale>
@@ -6,9 +7,6 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
-
-// Config settings
-bool useLogFile = false;
 
 // Global log file
 QFile logFile;
@@ -23,7 +21,14 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    if (useLogFile) {
+    // TODO: figure out how to put the config file into the assets folder instead of manually
+    // having to place it into the build folder
+    Config& config = Config::getInstance();
+    if (!config.loadConfig("application_config.json")) {
+        return -1;
+    }
+
+    if (config.getUseLogFile()) {
         // Set up the log file
         logFile.setFileName("application.log");
         if (!logFile.open(QIODevice::Append | QIODevice::Text)) {
@@ -49,14 +54,14 @@ int main(int argc, char *argv[])
     QIcon appIcon(":/assets/app_icon.ico");
     a.setWindowIcon(appIcon);
 
-    qDebug() << "Application Launching";
+    qDebug() << "--> [main]: Application Launching";
     MainWindow w;
     w.show();
     int result = a.exec();
-    qDebug() << "Application Closed";
+    qDebug() << "<-- [main]: Application Closed";
 
     // Close the log file
-    if (useLogFile) {
+    if (config.getUseLogFile()) {
         logFile.close();
     }
     

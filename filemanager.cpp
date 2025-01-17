@@ -19,12 +19,12 @@ bool saveDataToCSV(QStringList& data) {
 
 QStringList FileManager::parseCurrentFile()
 {
-    qDebug() << "--> FileManager::parseCurrentFile";
+    qDebug() << "--> [FileManager::parseCurrentFile]";
 
     QStringList fileContents;
 
     if (!file || !file->isOpen() || !(file->openMode() & QIODevice::ReadOnly)) {
-        qDebug() << "   File is not open for reading.";
+        qDebug() << "    [FileManager::parseCurrentFile]: File is not open for reading.";
         return fileContents;
     }
 
@@ -34,19 +34,18 @@ QStringList FileManager::parseCurrentFile()
     QTextStream in(file);
     while (!in.atEnd()) {
         QString line = in.readLine();
-        qDebug() << "   " << line;
+        qDebug() << "    [FileManager::parseCurrentFile]: " << line;
         fileContents.append(line);
     }
 
-    qDebug() << "    " << fileContents;
+    qDebug() << "    [FileManager::parseCurrentFile]: " << fileContents;
+    qDebug() << "<-- [FileManager::parseCurrentFile]";
     return fileContents;
-
-    qDebug() << "<-- FileManager::parseCurrentFile";
 }
 
 QList<QStringList> FileManager::parseCurrentFileIntoColumns()
 {
-    qDebug() << "--> FileManager::parseCurrentFileIntoColumns";
+    qDebug() << "--> [FileManager::parseCurrentFileIntoColumns]";
     file->seek(0);
     QTextStream in(file);
     bool isFirstLine = true;
@@ -58,7 +57,7 @@ QList<QStringList> FileManager::parseCurrentFileIntoColumns()
 
         // Split each line into cells using comma as delimiter
         QStringList cells = line.split(",");
-        qDebug() << "    Line cells:" << cells;
+        qDebug() << "    [FileManager::parseCurrentFileIntoColumns]: Line cells:" << cells;
 
         // Initialize columns based on the number of cells in the first row
         if (isFirstLine) {
@@ -74,14 +73,14 @@ QList<QStringList> FileManager::parseCurrentFileIntoColumns()
         }
     }
 
-    qDebug() << "    Columns:" << columns;
-    qDebug() << "     File data parsed into columns.";
-    qDebug() << "<-- FileManager::parseCurrentFileIntoColumns";
+    qDebug() << "    [FileManager::parseCurrentFileIntoColumns]: Columns:" << columns;
+    qDebug() << "    [FileManager::parseCurrentFileIntoColumns]: File data parsed into columns.";
+    qDebug() << "<-- [FileManager::parseCurrentFileIntoColumns]";
     return columns;
 }
 
 QList<Player*> FileManager::parseCurrentFileIntoPlayers() {
-    qDebug() << "--> FileManager::parseCurrentFileIntoPlayers";
+    qDebug() << "--> [FileManager::parseCurrentFileIntoPlayers]";
 
     QList<Player*> players;
 
@@ -116,11 +115,11 @@ QList<Player*> FileManager::parseCurrentFileIntoPlayers() {
 
             players.append(player);
         } else {
-            qDebug() << "   Skipping invalid line: " << line;
+            qDebug() << "    [FileManager::parseCurrentFileIntoPlayers]: Skipping invalid line: " << line;
         }
     }
 
-    qDebug() << "<-- FileManager::parseCurrentFileIntoPlayers";
+    qDebug() << "<-- [FileManager::parseCurrentFileIntoPlayers]";
     return players;
 }
 
@@ -148,14 +147,14 @@ QFile* FileManager::getFile()
 
 void FileManager::setFile(QFile* newFile)
 {
-    qDebug() << "--> FileManager::setFile";
+    qDebug() << "--> [FileManager::setFile]";
 
-    qDebug() << "    Setting new file object.";
+    qDebug() << "    [FileManager::setFile]: Setting new file object.";
     this->file = newFile;
     if (file) {
         filePath = file->fileName();
-        qDebug() << "    New filepath: " << filePath;
+        qDebug() << "    [FileManager::setFile]: New filepath: " << filePath;
     }
 
-    qDebug() << "<-- FileManager::setFile";
+    qDebug() << "<-- [FileManager::setFile]";
 }

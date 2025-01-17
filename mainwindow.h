@@ -12,6 +12,7 @@
 #include "FileManager.h"
 #include "RoleAssigner.h"
 #include "ClipboardManager.h"
+#include "Config.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
