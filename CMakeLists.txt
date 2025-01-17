@@ -32,6 +32,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         appicon.rc
         FileManager.cpp RoleAssigner.cpp
         RoleAssigner.h
+        ClipboardManager.cpp ClipboardManager.h
+        application_config.json
+        Config.h Config.cpp
     )
 
 # Define target properties for Android with Qt 6 as:

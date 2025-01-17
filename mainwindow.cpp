@@ -2,7 +2,6 @@
 #include "./ui_mainwindow.h"
 
 FileManager* g_fileManager = new FileManager();
-RoleAssigner* g_roleAssigner = new RoleAssigner();
 
 const QString VERSION_NUMBER = "0.2.0";
 QList<Player*> g_playersList;
@@ -10,6 +9,8 @@ QList<Player*> g_playersList;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , roleAssigner(new RoleAssigner(this))
+    , clipboardManager(new ClipboardManager(this))
 {
     qDebug() << "--> MainWindow::MainWindow";
 
@@ -38,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget::setTabOrder(ui->playerBox_4, ui->playerBox_5);
     QWidget::setTabOrder(ui->playerBox_5, ui->playerBox_6);
 
-    // Connect the slots
+    // Connect the UI buttons to the mainwindow private slots
     connect(ui->action_newfile, &QAction::triggered, this, &MainWindow::createNewCSVFile);
     connect(ui->action_openfile, &QAction::triggered, this, &MainWindow::openCSVFile);
     connect(ui->assignRolesButton, &QPushButton::clicked, this, &MainWindow::assignRoles);
@@ -46,13 +47,33 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_savefile, &QAction::triggered, this, &MainWindow::saveCSVFile);
     connect(ui->copyOutputToClipboardButton, &QPushButton::clicked, this, &MainWindow::copyOutputToClipboard);
 
+    // Connect the assignRoles signal to the RoleAssigner's assignRoles slot
+    connect(this, &MainWindow::assignRolesSignal, roleAssigner, &RoleAssigner::assignRoles);
+
+    // Connect the copyOutputToClipboard signal to the ClipboardManager's slot
+    connect(this, &MainWindow::copyOutputToClipboardSignal, clipboardManager, &ClipboardManager::copyOutputToClipboard);
+    connect(clipboardManager, &ClipboardManager::noResultsToCopy, this, &MainWindow::showNoResultsToCopyNotification);
+
     qDebug() << "<-- MainWindow::MainWindow";
 }
-
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    // roleAssigner will be deleted automatically as it is a child of MainWindow
+}
+
+void MainWindow::assignRoles() {
+    qDebug() << "--> MainWindow::assignRoles";
+    emit assignRolesSignal(ui, g_playersList);
+    qDebug() << "<-- MainWindow::assignRoles";
+}
+
+void MainWindow::copyOutputToClipboard()
+{
+    qDebug() << "--> MainWindow::copyOutputToClipboard";
+    emit copyOutputToClipboardSignal(g_playersList);
+    qDebug() << "<-- MainWindow::copyOutputToClipboard";
 }
 
 void MainWindow::showAboutDialog() {
@@ -115,7 +136,6 @@ void MainWindow::createNewCSVFile()
     qDebug() << "<-- MainWindow::createNewCSVFile";
 }
 
-
 void MainWindow::openCSVFile()
 {
     qDebug() << "--> MainWindow::openCSVFile";
@@ -141,7 +161,6 @@ void MainWindow::openCSVFile()
 
     qDebug() << "<-- MainWindow::openCSVFile";
 }
-
 
 void MainWindow::processCSVFile(QFile* file, QString fileName)
 {
@@ -174,7 +193,6 @@ void MainWindow::processCSVFile(QFile* file, QString fileName)
 
     qDebug() << "<-- MainWindow::processCSVFile";
 }
-
 
 void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
 {
@@ -242,11 +260,6 @@ void MainWindow::setupUIFromCSV(QList<QStringList> fileData)
     qDebug() << "<-- MainWindow::setupUIFromCSV";
 }
 
-
-void MainWindow::assignRoles() {
-    g_roleAssigner->assignRoles(ui, g_playersList);
-}
-
 void MainWindow::saveCSVFile()
 {
     qDebug() << "--> MainWindow::saveCSVFile";
@@ -276,69 +289,13 @@ void MainWindow::saveCSVFile()
     qDebug() << "<-- MainWindow::saveCSVFile";
 }
 
-void MainWindow::copyOutputToClipboard()
-{
-    qDebug() << "--> MainWindow::copyOutputToClipboard";
-
-    // Display a notification saying that there was nothing to be copied
-    if (g_playersList.isEmpty()) {
-        QLabel *notification = new QLabel("No results to copy", this);
-        notification->setStyleSheet("QLabel { background-color : lightgray; color : black; padding: 5px; }");
-        notification->setAlignment(Qt::AlignCenter);
-        notification->setGeometry((width() - 200) / 2, (height() - 50) / 2, 200, 50);
-        notification->show();
-        QTimer::singleShot(2000, notification, &QWidget::deleteLater);
-
-        qDebug() << "<-- MainWindow::copyOutputToClipboard";
-        return;
-    }
-
-    // Initialize the output string
-    QString clipboardText = "```\n";
-    clipboardText += QString("%1 | %2 | %3 | %4\n")
-        .arg("Name", -10)
-        .arg("Role", -10)
-        .arg("% of Games", -10)
-        .arg("Times Played", -10);
-    clipboardText += "---------------------------------------------\n";
-
-    // Go through each player and if they have an assigned role add their info to the output string
-    for (Player* player : g_playersList) {
-        qDebug() << "       Player: " << player;
-
-        int roleCount = 0;
-        if (player->getAssignedRole() == "Vanguard") {
-            roleCount = player->getVanguardCount();
-        } else if (player->getAssignedRole() == "Duelist") {
-            roleCount = player->getDuelistCount();
-        } else if (player->getAssignedRole() == "Strategist") {
-            roleCount = player->getStrategistCount();
-        }
-
-        if (roleCount) {
-            qDebug() << "       Player copied: " << player->getName();
-            double percentagePlayed = (player->getTotalGames() > 0) ? (static_cast<double>(roleCount) / player->getTotalGames()) * 100 : 0;
-
-            clipboardText += QString("%1 | %2 | %3 | %4\n")
-                .arg(player->getName(), -10)
-                .arg(player->getAssignedRole(), -10)
-                .arg(QString::number(percentagePlayed, 'f', 2), -10)
-                .arg(roleCount, -10);
-        }
-    }
-    clipboardText += "```";
-
-    // Send the text to the clipboard
-    QClipboard *clipboard = QGuiApplication::clipboard();
-    clipboard->setText(clipboardText);
-
-    // Show a temporary success notification
-    QLabel *notification = new QLabel("Copied to Clipboard", this);
+void MainWindow::showNoResultsToCopyNotification() {
+    qDebug() << "--> MainWindow::showNoResultsToCopyNotification";
+    QLabel *notification = new QLabel("No results to copy", this);
     notification->setStyleSheet("QLabel { background-color : lightgray; color : black; padding: 5px; }");
     notification->setAlignment(Qt::AlignCenter);
     notification->setGeometry((width() - 200) / 2, (height() - 50) / 2, 200, 50);
     notification->show();
+    qDebug() << "<-- MainWindow::showNoResultsToCopyNotification";
     QTimer::singleShot(2000, notification, &QWidget::deleteLater);
-
-    qDebug() << "<-- MainWindow::copyOutputToClipboard";
 }

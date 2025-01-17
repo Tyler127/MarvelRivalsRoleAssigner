@@ -1,6 +1,6 @@
 #include "RoleAssigner.h"
 
-RoleAssigner::RoleAssigner() {
+RoleAssigner::RoleAssigner(QObject* parent) : QObject(parent) {
     // Constructor implementation (if any)
 }
 

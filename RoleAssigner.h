@@ -4,13 +4,18 @@
 #include <QList>
 #include <QSet>
 #include <random>
+#include <QObject>
 #include "Player.h"
 #include "./ui_mainwindow.h"
 
-class RoleAssigner
+class RoleAssigner : public QObject
 {
+    Q_OBJECT
+
 public:
-    RoleAssigner();
+    RoleAssigner(QObject* parent = nullptr);
+
+public slots:
     void assignRoles(Ui::MainWindow* ui, QList<Player*>& playersList);
 
 private:

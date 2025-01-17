@@ -11,6 +11,7 @@
 #include <random>
 #include "FileManager.h"
 #include "RoleAssigner.h"
+#include "ClipboardManager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,6 +27,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+signals:
+    void assignRolesSignal(Ui::MainWindow* ui, QList<Player*>& playersList);
+    void copyOutputToClipboardSignal(QList<Player*>& playersList);
+
 private slots:
     void createNewCSVFile();
     void openCSVFile();
@@ -33,10 +38,13 @@ private slots:
     void showAboutDialog();
     void saveCSVFile();
     void copyOutputToClipboard();
+    void showNoResultsToCopyNotification();
 
 private:
     Ui::MainWindow *ui;
     QFile openFile;
+    RoleAssigner* roleAssigner;
+    ClipboardManager* clipboardManager;
     void processCSVFile(QFile* file, QString fileName);
     void setupUIFromCSV(QList<QStringList> fileData);
 };
